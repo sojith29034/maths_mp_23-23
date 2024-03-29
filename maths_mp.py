@@ -37,54 +37,124 @@ st.write("Summary Statistics:", df.describe())
 
 
 # Visualizations
-"""# Data Representation - Bar graph"""
 sem1 = df['FYFH Result']
 pass_indices = [i for i, result in enumerate(sem1) if result == 1]
 fail_indices = [i for i, result in enumerate(sem1) if result == 0]
 
-plt.bar([m10[i] for i in pass_indices], [sem1[i]+1 for i in pass_indices], label="Pass", color='g')
-plt.bar([m10[i] for i in fail_indices], [sem1[i]+1 for i in fail_indices], label="Fail", color='r')
-plt.xlabel('10th Board Marks')
-plt.ylabel('Semester 1 Marks')
-plt.legend()
-plt.show()
+# Streamlit interface
+st.title('Semester 1 Performance Analysis - Data Representation')
 
-plt.bar([m12[i] for i in pass_indices], [sem1[i]+1 for i in pass_indices], label="Pass", color='g')
-plt.bar([m12[i] for i in fail_indices], [sem1[i]+1 for i in fail_indices], label="Fail", color='r')
-plt.xlabel('12th Board Marks')
-plt.ylabel('Semester 1 Marks')
-plt.legend()
-plt.show()
+# Plotting for 10th Board Marks
+st.subheader('10th Board Marks vs. Semester 1 Performance')
+fig, ax = plt.subplots()
+ax.bar([m10[i] for i in pass_indices], [sem1[i]+1 for i in pass_indices], label="Pass", color='g')
+ax.bar([m10[i] for i in fail_indices], [sem1[i]+1 for i in fail_indices], label="Fail", color='r')
+ax.set_xlabel('10th Board Marks')
+ax.set_ylabel('Semester 1 Marks')
+ax.legend()
+st.pyplot(fig)
 
-plt.bar([mCET[i] for i in pass_indices], [sem1[i]+1 for i in pass_indices], label="Pass", color='g')
-plt.bar([mCET[i] for i in fail_indices], [sem1[i]+1 for i in fail_indices], label="Fail", color='r')
-plt.xlabel('CET Marks')
-plt.ylabel('Semester 1 Marks')
-plt.legend()
-plt.show()
+# Plotting for 12th Board Marks
+st.subheader('12th Board Marks vs. Semester 1 Performance')
+fig, ax = plt.subplots()
+ax.bar([m12[i] for i in pass_indices], [sem1[i]+1 for i in pass_indices], label="Pass", color='g')
+ax.bar([m12[i] for i in fail_indices], [sem1[i]+1 for i in fail_indices], label="Fail", color='r')
+ax.set_xlabel('12th Board Marks')
+ax.set_ylabel('Semester 1 Marks')
+ax.legend()
+st.pyplot(fig)
+
+# Plotting for CET Marks
+st.subheader('CET Marks vs. Semester 1 Performance')
+fig, ax = plt.subplots()
+ax.bar([mCET[i] for i in pass_indices], [sem1[i]+1 for i in pass_indices], label="Pass", color='g')
+ax.bar([mCET[i] for i in fail_indices], [sem1[i]+1 for i in fail_indices], label="Fail", color='r')
+ax.set_xlabel('CET Marks')
+ax.set_ylabel('Semester 1 Marks')
+ax.legend()
+st.pyplot(fig)
+
+
+
 
 # Model Training
-# (Put your model training code here)
-
-# Model Feedback
-# (Put your model feedback code here)
-
-# Prediction
-# (Put your prediction code here)
+X = df[['10th', '12th', 'CET']]
+y = df['FYFH Result']
 
 # Streamlit interface
-st.title('Maths MP Prediction')
+st.title('Data Preprocessing')
 
-user_10th_marks = st.number_input("Enter 10th-grade marks:", min_value=0.0, max_value=100.0, value=50.0, step=0.1)
-user_12th_marks = st.number_input("Enter 12th-grade marks:", min_value=0.0, max_value=100.0, value=50.0, step=0.1)
-user_CET_marks = st.number_input("Enter CET marks:", min_value=0.0, max_value=100.0, value=50.0, step=0.1)
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Data scaling
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Display scaled data
+st.write("X_train_scaled:", X_train_scaled)
+st.write("X_test_scaled:", X_test_scaled)
+st.write("y_train:", y_train)
+st.write("y_test:", y_test)
+
+
+# Streamlit interface
+st.title('Model Training - Random Forest')
+
+# Model training
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# Model evaluation
+y_pred = model.predict(X_test_scaled)
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+class_report = classification_report(y_test, y_pred)
+
+# Display evaluation results
+st.write("Accuracy:", accuracy)
+st.write("\nConfusion Matrix:")
+st.write(conf_matrix)
+st.write("\nClassification Report:")
+st.write(class_report)
+
+
+
+
+# Model Feedback
+# Calculate feature importance
+feature_importance = model.feature_importances_
+
+# Streamlit interface
+st.title('Feature Importance')
+
+# Plot feature importance
+fig, ax = plt.subplots()
+ax.bar(X.columns, feature_importance)
+ax.set_xlabel('Features')
+ax.set_ylabel('Importance')
+ax.set_title('Feature Importance')
+st.pyplot(fig)
+
+
+
+
+# Prediction
+# Streamlit interface
+st.title('Maths MP - FY Result Prediction System')
+
+user_10th_marks = st.number_input("Enter 10th-grade marks:", min_value=0.0, max_value=100.0, step=0.1)
+user_12th_marks = st.number_input("Enter 12th-grade marks:", min_value=0.0, max_value=100.0, step=0.1)
+user_CET_marks = st.number_input("Enter CET marks:", min_value=0.0, max_value=100.0, step=0.1)
 
 if st.button('Predict'):
+    user_input_scaled = scaler.transform([[user_10th_marks, user_12th_marks, user_CET_marks]])
+    
     # Make prediction
-    prediction = model.predict([[user_10th_marks, user_12th_marks, user_CET_marks]])
+    prediction = model.predict(user_input_scaled)
     prediction_label = label_encoder.inverse_transform(prediction)[0]
     st.write(f'Predicted Result: {prediction_label}')
 
     # Display prediction explanation
-    st.write(f'With 10th marks {user_10th_marks}, 12th marks {user_12th_marks}, and CET marks {user_CET_marks},')
-    st.write(f'the predicted result for the first year of engineering is: {prediction_label}')
+    st.write(f'With 10th marks {user_10th_marks}, 12th marks {user_12th_marks}, and CET marks {user_CET_marks}, the predicted result for the first year of engineering is: {prediction_label}')
