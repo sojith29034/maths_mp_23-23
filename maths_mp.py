@@ -142,7 +142,7 @@ ax.set_title('Feature Importance')
 
 # Prediction
 # Streamlit interface
-st.title('Maths MP - FY Result Prediction System')
+st.title('EM-4 Mini Project - FY Result Prediction System')
 
 user_10th_marks = st.number_input("Enter 10th-grade marks:", min_value=0.0, max_value=100.0, step=0.1)
 user_12th_marks = st.number_input("Enter 12th-grade marks:", min_value=0.0, max_value=100.0, step=0.1)
